@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Content Studio · Planifica tu contenido</title><link rel="stylesheet" href="app.css"></head><body>
+<aside><h1><b>&lt;/&gt;</b> Content Studio</h1><button data-v="r">Resumen</button><button data-v="e">Editor</button><button data-v="t">Tablero</button><a class="back" href="../index.html#proyectos">← Volver al portfolio</a></aside>
+<main id="m"></main><script src="app.js"></script><script>
+const S=['Idea','Borrador','Publicado'];
+const C=store('cs-c',[{id:'1',t:'Qué aprendí en mi bootcamp',x:'Seis meses de proyectos, errores y mucho código.',s:'Publicado'},{id:'2',t:'Guía para tu primer despliegue',x:'Pasos para publicar una app con Flask.',s:'Borrador'},{id:'3',t:'React vs Next.js',x:'',s:'Idea'}]);
+const words=t=>(t.trim()?t.trim().split(/\s+/).length:0);
+mount({
+r:()=>{const n=S.map(s=>C.get().filter(c=>c.s===s).length),mx=Math.max(...n,1);
+return `<h2>Resumen</h2><div class="cards"><div class="card"><b>${C.get().length}</b><span>piezas</span></div><div class="card"><b>${C.get().reduce((a,c)=>a+words(c.x),0)}</b><span>palabras escritas</span></div></div><div class="box"><h3>Estado del contenido</h3><div class="bars">${S.map((s,i)=>`<div><i style="height:${n[i]/mx*100}%"></i>${s} (${n[i]})</div>`).join('')}</div></div>`},
+e:()=>`<h2>Nuevo contenido</h2><form data-act="add"><input name="t" placeholder="Título" required><select name="s" aria-label="Estado">${S.map(s=>`<option ${s==='Borrador'?'selected':''}>${s}</option>`).join('')}</select><textarea name="x" placeholder="Escribe aquí tu texto o apunta la idea"></textarea><button class="btn">Guardar</button></form>`,
+t:()=>`<h2>Tablero</h2><div class="cols">${S.map((s,i)=>`<div><h3>${s}</h3>${C.get().filter(c=>c.s===s).map(c=>`<div class="item" style="display:block"><b>${esc(c.t)}</b><p>${esc(c.x.slice(0,90))}</p><div style="display:flex;gap:6px;margin-top:10px">${i>0?`<button class="btn g" data-act="mv" data-id="${c.id}" data-to="${S[i-1]}">← ${S[i-1]}</button>`:''}${i<2?`<button class="btn g" data-act="mv" data-id="${c.id}" data-to="${S[i+1]}">${S[i+1]} →</button>`:''}<button class="btn g" data-act="del" data-id="${c.id}">Borrar</button></div></div>`).join('')||'<p class="mu">Vacío</p>'}</div>`).join('')}</div>`
+},{add:d=>{C.set([{id:uid(),t:d.t,x:d.x,s:d.s},...C.get()]);return 't'},mv:d=>C.set(C.get().map(c=>c.id===d.id?{...c,s:d.to}:c)),del:d=>C.set(C.get().filter(c=>c.id!==d.id))});
+</script></body></html>

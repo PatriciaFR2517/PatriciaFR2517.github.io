@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StayDesk · Gestión de reservas</title><link rel="stylesheet" href="app.css"></head><body>
+<aside><h1><b>&lt;/&gt;</b> StayDesk</h1><button data-v="r">Resumen</button><button data-v="b">Reservas</button><a class="back" href="../index.html#proyectos">← Volver al portfolio</a></aside>
+<main id="m"></main><script src="app.js"></script><script>
+const ROOMS=['Hab. 1','Hab. 2','Hab. 3','Hab. 4'],ST=['Pendiente','Confirmada','Cancelada'];
+const B=store('sd-b',[{id:'1',c:'Ana López',h:'Hab. 1',a:iso(-1),b:iso(2),s:'Confirmada'},{id:'2',c:'Marcos Ruiz',h:'Hab. 2',a:iso(2),b:iso(5),s:'Pendiente'},{id:'3',c:'Lucía Vega',h:'Hab. 3',a:iso(5),b:iso(9),s:'Confirmada'}]);
+let err='';
+const act=()=>B.get().filter(r=>r.s!=='Cancelada');
+const fmt=d=>new Date(d+'T00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+mount({
+r:()=>{const t=iso(),occ=new Set(act().filter(r=>r.a<=t&&r.b>t).map(r=>r.h)).size,nx=act().filter(r=>r.a>=t).sort((a,b)=>a.a.localeCompare(b.a)).slice(0,4);
+return `<h2>Resumen</h2><div class="cards"><div class="card"><b>${act().length}</b><span>reservas activas</span></div><div class="card"><b>${Math.round(occ/ROOMS.length*100)}%</b><span>ocupación hoy</span></div><div class="card"><b>${B.get().filter(r=>r.s==='Pendiente').length}</b><span>por confirmar</span></div></div><div class="box"><h3>Próximas entradas</h3><div class="list">${nx.map(r=>`<div class="item"><span>${esc(r.c)} <span class="mu">· ${r.h}</span></span><span class="mu">${fmt(r.a)}</span></div>`).join('')||'<p class="mu">No hay entradas próximas.</p>'}</div></div>`},
+b:()=>`<h2>Reservas</h2>${err?`<p class="err" role="alert">${err}</p>`:''}<form data-act="add"><input name="c" placeholder="Cliente" required><select name="h" aria-label="Habitación">${ROOMS.map(h=>`<option>${h}</option>`).join('')}</select><input name="a" type="date" value="${iso()}" aria-label="Entrada" required><input name="b" type="date" value="${iso(1)}" aria-label="Salida" required><button class="btn">+ Nueva reserva</button></form><div class="tw"><table><tr><th>Cliente</th><th>Habitación</th><th>Entrada</th><th>Salida</th><th>Estado</th><th></th></tr>${[...B.get()].sort((x,y)=>x.a.localeCompare(y.a)).map(r=>`<tr><td>${esc(r.c)}</td><td>${r.h}</td><td>${fmt(r.a)}</td><td>${fmt(r.b)}</td><td><button class="tag ${r.s==='Confirmada'?'ok':r.s==='Cancelada'?'no':''}" data-act="st" data-id="${r.id}" title="Cambiar estado">${r.s}</button></td><td><button class="btn g" data-act="del" data-id="${r.id}">Borrar</button></td></tr>`).join('')}</table></div>`
+},{add:d=>{err='';if(d.b<=d.a){err='La salida debe ser posterior a la entrada.';return}
+if(act().some(r=>r.h===d.h&&d.a<r.b&&d.b>r.a)){err=d.h+' ya está reservada en esas fechas.';return}
+B.set([...B.get(),{id:uid(),c:d.c,h:d.h,a:d.a,b:d.b,s:'Pendiente'}])},
+st:d=>B.set(B.get().map(r=>r.id===d.id?{...r,s:ST[(ST.indexOf(r.s)+1)%3]}:r)),del:d=>B.set(B.get().filter(r=>r.id!==d.id))});
+</script></body></html>

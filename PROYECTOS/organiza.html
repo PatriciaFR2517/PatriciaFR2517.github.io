@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Organiza · Espacio de trabajo</title><link rel="stylesheet" href="app.css"></head><body>
+<aside><h1><b>&lt;/&gt;</b> Organiza</h1><button data-v="r">Resumen</button><button data-v="n">Notas</button><button data-v="e">Eventos</button><a class="back" href="../index.html#proyectos">← Volver al portfolio</a></aside>
+<main id="m"></main><script src="app.js"></script><script>
+const N=store('org-n',[{id:'1',t:'Ideas para el sprint',x:'Revisar el diseño del panel y priorizar las tareas.'},{id:'2',t:'Pendiente',x:'Enviar el CV a tres empresas.'}]);
+const E=store('org-e',[{id:'1',t:'Reunión con cliente',d:iso(0)},{id:'2',t:'Revisar diseño',d:iso(1)},{id:'3',t:'Entrega del sprint',d:iso(4)}]);
+const fmt=d=>new Date(d+'T00:00').toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});
+const up=()=>E.get().filter(e=>e.d>=iso()).sort((a,b)=>a.d.localeCompare(b.d));
+mount({
+r:()=>`<h2>Tu espacio de trabajo</h2><div class="cards"><div class="card"><b>${N.get().length}</b><span>notas</span></div><div class="card"><b>${up().length}</b><span>eventos próximos</span></div></div><div class="box"><h3>Próximos eventos</h3><div class="list">${up().slice(0,3).map(e=>`<div class="item"><span>${esc(e.t)}</span><span class="mu">${fmt(e.d)}</span></div>`).join('')||'<p class="mu">No tienes eventos próximos. Crea uno en Eventos.</p>'}</div></div>`,
+n:()=>`<h2>Notas</h2><form data-act="addN"><input name="t" placeholder="Título" required><textarea name="x" placeholder="Escribe tu nota"></textarea><button class="btn">Guardar nota</button></form><div class="list">${N.get().map(n=>`<div class="item"><div><h3>${esc(n.t)}</h3><p>${esc(n.x)}</p></div><button class="btn g" data-act="delN" data-id="${n.id}">Borrar</button></div>`).join('')||'<p class="mu">Aún no hay notas. Escribe la primera.</p>'}</div>`,
+e:()=>`<h2>Eventos</h2><form data-act="addE"><input name="t" placeholder="Evento" required><input name="d" type="date" value="${iso()}" required><button class="btn">Añadir evento</button></form><div class="list">${[...E.get()].sort((a,b)=>a.d.localeCompare(b.d)).map(e=>`<div class="item"><span>${esc(e.t)} <span class="mu">· ${fmt(e.d)}</span></span><button class="btn g" data-act="delE" data-id="${e.id}">Borrar</button></div>`).join('')||'<p class="mu">Sin eventos.</p>'}</div>`
+},{addN:d=>N.set([{id:uid(),t:d.t,x:d.x},...N.get()]),delN:d=>N.set(N.get().filter(n=>n.id!==d.id)),addE:d=>E.set([...E.get(),{id:uid(),t:d.t,d:d.d}]),delE:d=>E.set(E.get().filter(e=>e.id!==d.id))});
+</script></body></html>
